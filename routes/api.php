@@ -23,15 +23,15 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/projects/joined', [ProjectController::class, 'getProjectJoined']);
     Route::post('/projects/{id}/join', [ProjectController::class, 'join']);
     Route::get('/projects/{id}/joined-users', [ProjectController::class, 'joinedUsers']);
-
-
+    
+    
     Route::get('/projects/{id}/tasks', [TaskController::class, 'index']);
     Route::post('/projects/{id}/tasks', [TaskController::class, 'store']);
     Route::put('/tasks/{id}', [TaskController::class, 'update']);
     Route::put('/tasks/{task}/assign', [TaskController::class, 'assignUser']);
 });
 
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::post('/projects', [ProjectController::class, 'store']);
     Route::put('/projects/{id}', [ProjectController::class, 'update']);
     Route::delete('/projects/{id}', [ProjectController::class, 'destroy']);
