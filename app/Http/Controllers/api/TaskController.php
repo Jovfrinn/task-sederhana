@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Task;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,39 +22,56 @@ class TaskController extends Controller
 
     public function assignUser(Request $request, $id)
     {
+        try {
+        $request->validate([
+            'user_id' => 'required|exists:users,id'
+        ]);
+
         $task = Task::findOrFail($id);
         $task->assigned_to = $request->user_id;
         $task->save();
 
         return response()->json([
-            'message' => 'Task berhasil di-assign',
+            'message' => 'Task has been successfully assigned',
             'task' => $task->load('user')
         ]);
+    } catch (\Exception $e){
+        return response()->json([
+            'error' => 'Something went wrong:' . $e->getMessage()
+        ],500);
+    }
     }
 
     public function store(Request $request, $id)
     {
-        $request->validate([
-        'title' => 'required|string|max:255',
-        'status' => 'required|string',
-        ]);
+        try{
+            $request->validate([
+            'title' => 'required|string|max:255',
+            'status' => 'required|string',
+            ]);
 
-        $task = Task::create([
-            'project_id' => $id,
-            'title' => $request->title,
-            'status' => $request->status,
-            'created_by' => Auth::id(),
-        ]);
+            $task = Task::create([
+                'project_id' => $id,
+                'title' => $request->title,
+                'status' => $request->status,
+                'created_by' => Auth::id(),
+            ]);
 
-        return response()->json([
-            'message' => 'Task created successfully',
-            'data' => $task
-        ], 201);
-
+            return response()->json([
+                'message' => 'Task created successfully',
+                'data' => $task
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+            'error' => 'Failed to create task :' . $e->getMessage()
+            ],500);
+        }
+        
     }
     public function update(Request $request, string $id)
     {
 
+        try{
         $request->validate([
         'title' => 'required|string|max:255',
         'status' => 'required|string',
@@ -68,7 +86,7 @@ class TaskController extends Controller
         ]);
 
         return response()->json([
-        'message' => 'Task berhasil diupdate',
+        'message' => 'Task has been successfully updated',
         'data' => $tasks
         ],200);
         }
@@ -79,7 +97,7 @@ class TaskController extends Controller
         ]);
 
         return response()->json([
-        'message' => 'Task berhasil diupdate',
+        'message' => 'Task has been successfully updated',
         'data' => $tasks
         ],200);
         } else {
@@ -87,15 +105,29 @@ class TaskController extends Controller
                 'message' => 'You Are Not the Task Creator'
             ], 404);
         }
+        } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Failed to update task:' . $e->getMessage()
+            ],500);
+        }
     }
     public function destroy(string $id)
     {
+        try {
         $task = Task::findOrFail($id);
 
             $task->delete();
 
             return response()->json([
-                'message' => 'Task berhasil dihapus'
+                'message' => 'Task deleted  successfully'
             ], 200);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'error' => 'Failed to delete task: ' . $e->getMessage()
+            ], 500);
+
+        }
     }
 }

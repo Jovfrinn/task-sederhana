@@ -32,14 +32,21 @@ class ProjectController extends Controller
     }
     public function getProjectJoined()
     {
-        $userId = Auth::id();
-        $projectJoined = ProjectJoined::where('user_id', $userId)->pluck('project_id');
-        $projects = Project::whereIn('id', $projectJoined)->get();
+        try {
+            $userId = Auth::id();
+            $projectJoined = ProjectJoined::where('user_id', $userId)->pluck('project_id');
+            $projects = Project::whereIn('id', $projectJoined)->get();
 
-        return response()->json([
-            'message' => 'OK',
-            'data' => $projects
-        ],200);
+            return response()->json([
+                'message' => 'OK',
+                'data' => $projects
+            ],200);
+        } catch (\Exception $e) {
+            return response()->json([
+            'error' => 'Something went wrong:' . $e->getMessage()
+            ],500);
+        }
+        
     }
 
     public function join(Request $request, $id)
@@ -54,7 +61,7 @@ class ProjectController extends Controller
 
         if ($exists) {
             return response()->json([
-                'message' => 'Kamu sudah join project ini'
+                'message' => 'You joined this project'
             ], 400);
         }
 
@@ -67,7 +74,7 @@ class ProjectController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Berhasil join project'
+            'message' => 'Successfully Joined Project'
         ], 201);
     }
 
@@ -78,6 +85,7 @@ class ProjectController extends Controller
     }
     public function store(Request $request)
     {
+        try{
         $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
@@ -96,10 +104,17 @@ class ProjectController extends Controller
             'message' => 'Project created successfully',
             'data' => $project
         ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+            'error' => 'Failed to create project:' . $e->getMessage()
+            ],500);
+        }
     }
 
     public function update(Request $request, string $id)
     {
+        try {
         $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
@@ -120,15 +135,31 @@ class ProjectController extends Controller
         'message' => 'Project berhasil diupdate',
         'data' => $project
         ],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+            'error' => 'Failed to update project:' . $e->getMessage()
+            ],500);
+        }
     }
 
     public function destroy(string $id)
     {
-    $project = Project::findOrFail($id);
-    $project->delete();
+        try {
+            $project = Project::findOrFail($id);
+            $project->delete();
 
-    return response()->json([
-        'message' => 'Project berhasil dihapus'
-        ], 200);
+            return response()->json([
+                'message' => 'Project deleted  successfully'
+                ], 200);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'error' => 'Failed to delete project: ' . $e->getMessage()
+            ], 500);
+
+        }
     }
+        
 }
